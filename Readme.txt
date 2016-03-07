@@ -4,7 +4,9 @@ Working Title: A Novel Statistical Framework To Jointly Model Genetic and Epigen
 Document author: Chaitanya R. Acharya; 
 Collaborating authors: Kouros Owzar and Andrew S. Allen
 
-This repository holds the most up-to-date pdf document of our current project. Do the following to generate .PDF file.
+This repository holds the most up-to-date pdf document of our current project. 
+
+INSTRUCTIONS:
 
 make all
 make clean
