@@ -1,5 +1,5 @@
 \documentclass[hidelinks]{article}
-\title{A Novel Statistical Framework To Jointly Model Genetic and Epigenetic Regulation of Tissue-Specific Gene Expression}
+\title{A Novel Statistical Framework To Jointly Model Genetic and Epigenetic Regulation of Region-Specific Gene Expression in Adult Human Brain}
 \author{Chaitanya~R. Acharya, Kouros Owzar and Andrew~S. Allen}
 \date{\today}
 
@@ -39,7 +39,7 @@
 \pagestyle{fancyplain}
 \fancyhf{}
 \lhead{\fancyplain{}{}}
-\rhead{\fancyplain{}{\today}}
+\rhead{\fancyplain{}{Technical Report}}
 \rfoot{\fancyplain{}{\thepage}}
 \lfoot[\thepage]{}
 \rfoot[]{\thepage}
@@ -113,6 +113,10 @@
 \tableofcontents
 \listoffigures
 \setcounter{tocdepth}{3}
+
+\section{Author Summary}
+
+We present a new statistical approach to model the effect of germline variation on tissue-specific gene expression in the presence of epigenetic effect such as CpG island methylation. This is an effort to identify regulatory regions that are susceptible to both genetic and epigenetic variation resulting in tissue-specific patterns of perturbed gene expression. Current approaches include an independent expression quantitative trait loci (eQTL) and methylation quantitative trait loci (mQTL) analyses followed by an ad hoc approach to combine the results from the two in order to identify statistically and biologically significant mRNA - CpG - SNP triplets. Our approach jointly models additive effects due to genotype and methylation along with any interactions between genotype and tissue, and genotype, methylation and tissue in order to efficiently exploit tissue-specific patterns of methylation and gene expression without substantial loss of power. We present results from extensive simulation studies in order to show how our method compares with a tissue-by-tissue approach and JAGUAR, a joint model for eQTL analysis. We also demonstrate the effectiveness of our method by applying it to an array-based data from 150 adult human brains. Using our method, we identify more gene - pathway and gene - disease associations than the currently prevalent method and unravel new genetic and epigenetic variation that seem to regulate tissue-specific gene regulation.
 
 \section{Background \& Motivation}
 
@@ -335,21 +339,6 @@ We demonstrate the effectiveness of our method by applying it to a publicly avai
 \label{fig1}
 \end{figure}
 
-%\noindent\fbox{%
-%    \parbox{\textwidth}{%
-%	\textbf{OBJECTIVE:} \newline
-%	Leveraging all available genomic information (in this case, CpG island methylation patterns and genotype data) to efficiently identify tissue-specific eQTL. 
-%     }%
-%}
-%
-%
-%Available data types --
-%\begin{enumerate}
-%\item Gene expression data
-%\item SNP (as GWAS data)
-%\item Methylation data 
-%\end{enumerate}
-
 For a given gene-SNP pair, gene expression is modeled as a function of genotype and methylation -
 
 \begin{equation}
@@ -415,6 +404,13 @@ where $\Theta$ represents the vector of all the variance components involved in 
 \[
 Y \sim N( J\alpha + G\beta + M\lambda + MG\phi,\Sigma )
 \]
+
+The reduced model under the null is --
+
+\begin{equation*}
+\large
+Y_{H_0} = J\alpha +  M\lambda + Au + Dx + \xi
+\end{equation*}
 
 The efficient scores evaluated under the null are given by --
 
@@ -631,13 +627,22 @@ y_{it} = \alpha_t + \beta_i g_i + \lambda_i m_{it} + \phi_i m_{it} g_i + a_i + b
 
 where $y_{it}$ is a vector of gene expression data, $\alpha_t$ is the tissue-specific intercept, $\beta$ describes the main additive genotypic effect, $\lambda$ describes the overall effect due to methylation, $\phi$ describes the interaction effect between the overall methylation and genotype,  $g$ is the value of a bi-allelic genotype such that $g \in \left(0,1,2\right)$ represents the number of copies of the minor allele. The random effect $b_t$ represents tissue-specific effect of the genotype, $c_t$ represents tissue-specific interaction effect between methylation and genotype, $d_t$ represents tissue-specific methylation effect, and $a_i$ is a subject-specific random intercept. We assume that the random effects are independent and that $a_i \sim N_t \left(0, \tau \right)$, $b_t \sim N_t \left(0, \gamma \right)$, $c_t \sim N_t \left(0,\delta\right)$ and $d_t \sim N_t \left(0,\theta\right)$. 
 
-We use 1,000 data replicates to evaluate type I error and power calculations. Simulations were performed by varying $\beta$, the proportion of variance explained by the random effect describing the interaction between genotype and tissue, $PVE_{\gamma} \equiv \left(\frac{ \gamma}{\theta + \tau + \epsilon + \gamma + \delta }\right)$, and the proportion of variance explained by the random effect describing the interaction between genotype, methylation and tissue, $PVE_{\delta} \equiv \left(\frac{ \delta}{\theta + \tau + \epsilon + \gamma + \delta}\right)$. A linear mixed effects model was fit using the package \emph{lme4} \cite{lme4} in the statistical environment R (R Core Team) \cite{R}.
+Under the global null, the reduced model is --
 
-\begin{longtable}{lllllllll}
+\begingroup
+\large
+\begin{equation}
+y_{it} = \alpha_t + \lambda_i m_{it} + a_i + d_t m_{it} + \xi_{it} \qquad \xi  \overset{i.i.d.} \sim N \left( 0, \epsilon \right)
+\end{equation}
+\endgroup
+
+We use 1,000 data replicates to evaluate type I error and power calculations. Simulations were performed by varying $\beta$, the proportion of variance explained by the random effect describing the interaction between genotype and tissue, $G \times T = PVE_{\gamma} \equiv \left(\frac{ \gamma}{\theta + \tau + \epsilon + \gamma + \delta }\right)$, and the proportion of variance explained by the random effect describing the interaction between genotype, methylation and tissue, $G \times M \times T = PVE_{\delta} \equiv \left(\frac{ \delta}{\theta + \tau + \epsilon + \gamma + \delta}\right)$. A linear mixed effects model was fit using the package \emph{lme4} \cite{lme4} in the statistical environment R (R Core Team) \cite{R}.
+
+\begin{longtable}{lclclclclclclclc|c|}
 \hline
-$\beta$ & $\phi$  & $PVE_\delta (\%)$  & $PVE_\gamma (\%)$  &  $U_{\beta|H_0}$ & $U_{\phi|H_0}$ & $U_{\gamma|H_0}$ & $U_{\delta|H_0}$ & $U_{\psi|H_0}$ \\ \hline
+Additive Genetic Effect & $G \times M$  & $G \times M \times T$  & $G \times T$  &  $U_{\beta|H_0}$ & $U_{\phi|H_0}$ & $U_{\gamma|H_0}$ & $U_{\delta|H_0}$ & $U_{\psi|H_0}$ \\ \hline
 \endfirsthead
-$\beta$ & $\phi$  & $PVE_\delta (\%)$  & $PVE_\gamma (\%)$  &  $U_{\beta|H_0}$ & $U_{\phi|H_0}$ & $U_{\gamma|H_0}$ & $U_{\delta|H_0}$ & $U_{\psi|H_0}$ \\ \hline
+Additive Genetic Effect & $G \times M$  & $G \times M \times T$  & $G \times T$  &  $U_{\beta|H_0}$ & $U_{\phi|H_0}$ & $U_{\gamma|H_0}$ & $U_{\delta|H_0}$ & $U_{\psi|H_0}$ \\ \hline
 \endhead
 \multicolumn{9}{r}{{Continued\ldots}} \
 \endfoot
@@ -683,7 +688,7 @@ YES & YES & 8 & 8 & 0.351 & 0.737 & 0.623 & 0.817 & 0.869 \\
 \caption{Table comparing the statistical power of the joint score test statistic, $U_\psi$ and the contributions from its main components, $U_\beta$, $U_\gamma$ and $U_\delta$, all under the global null. These data were generated from 1,000 simulations run on 100 individuals and five tissues with genotypes generated at a common variant allele frequency (MAF = 0.3). }
 \end{longtable}
 
-\subsection{Comparing tissue-by-tissue approach with our joint score test statistic}
+\subsection{Comparing tissue-by-tissue approach with methylation as a baseline covariate with our joint score test statistic}
 
 A tissue-by-tissue (TBT) analysis fits the following model \textbf{Gene $\sim$ CpG + Geno + Geno:CpG} in individual tissues. For tissue $t$ and SNP $j$, the gene expression is modeled as a function of the genotype and methylation data:
 
@@ -696,11 +701,11 @@ Y_{t} =  \alpha_j m_{t} + \beta_t g_j + \delta_t g_j m_{t} + \epsilon_t
 
 where $Y_t$ is the gene expression $g$ of individuals in tissue $t$, $g_j$ is the genotype data on SNP $j$, $m_t$ is methylation information in tissue $t$. Minimum $p$~value from the TBT analysis across all the tissues is computed for power calculations.
 
-\begin{longtable}{llllll}
+\begin{longtable}{lclclclclcl}
 \hline
-$\beta$ & $\phi$ & $PVE_\delta  (\%)$ & $PVE_\gamma  (\%)$ & TBT & $U_\psi$ \\ \hline
+Additive Genetic Effect & $G \times M$ & $G \times M \times T$ & $G \times T$ & TBT & $U_\psi$ \\ \hline
 \endfirsthead
-$\beta$ & $\phi$ & $PVE_\delta  (\%)$ & $PVE_\gamma  (\%)$ & TBT & $U_\psi$ \\ \hline
+Additive Genetic Effect & $G \times M$ & $G \times M \times T$ & $G \times T$ & TBT & $U_\psi$ \\ \hline
 \endhead
 \multicolumn{6}{r}{{Continued\ldots}} \
 \endfoot
@@ -748,7 +753,7 @@ YES & YES & 10 & 10 & 0.847 & 0.898 \\
 
 Our joint model clearly outperforms TBT analysis in terms of statistical power.
 
-\subsection{Leveraging methylation data to improve eQTL discovery}
+\subsection{Power loss/gain in using our model to describe the effect of epigenetic variation on gene expression}
 
 We proposed a method, JAGUAR \cite{jaguar}, which investigated the presence of two types of genetic effects: 1) an overall shift in gene expression due to genotype across all tissues, and 2) tissue-specific effects of genotypes on gene expression using the following linear model --
 
@@ -757,7 +762,7 @@ Y = J\alpha + G\beta + Au + Bv + \xi \qquad Y \sim N\left(J\alpha + G\beta, \sig
 \end{equation}
 where $Y$ is a $nt$-dimensional vector of expression levels in $t$ tissues and $n$ individuals, $\alpha$ is a vector of tissue-specific intercepts, $G$ is a $nt$-dimensional vector of genotypes, $\beta$ is a fixed effect of genotype across tissue, $u \sim N\left(0, \tau AA^T \right)$ is a vector of subject-specific random effect, $v \sim N\left(0,\gamma BB^T \right)$ is a vector of tissue-specific random effects, and $\xi \sim N\left(0, \epsilon I_{nt} \right)$. The matrices $J$, $A$ and $B$ are design matrices with $B$ being a function of genotype. $J$ is $nt \times t$ dimensional matrix denoting the design matrix for the tissue-specific intercepts. $A$ is $nt \times nt$ design matrix for the subject-specific intercepts. $B$ is a $nt \times t$ design matrix of stacked genotypes. The parameters of interest are $\beta$ and $\gamma$; $\alpha$, $\tau$ and $\epsilon$ are nuisance parameters.
 
-We ask if including the terms associated with the methylation data to the above equation may lead to any substantial power loss. In order to do this, we keep all the variance components and fixed effects associated with methylation in equation 1 at zero (i.e. $\lambda$ = $\phi$ = $\delta$ = $\theta$ = 0). Statistical power from the joint analysis of only genotype and tissue-specific interaction using JAGUAR \cite{jaguar_cran} made available at Comprehensive R Archive Network (CRAN) repository \url{https://cran.r-project.org/web/packages/JAGUAR/index.html} was compared with our new method. As seen in figure 4, the loss of statistical power is not substantial. 
+We ask if including the terms associated with the methylation data to the above equation may lead to any substantial power loss in identifying mRNA - SNP associations both in the presence and absence of any effects due to CpG methylation. In order to do this, we keep all the variance components and fixed effects associated with methylation in equation 1 at zero (i.e. $\lambda$ = $\phi$ = $\delta$ = $\theta$ = 0). Statistical power from the joint analysis of only genotype and tissue-specific interaction using JAGUAR \cite{jaguar_cran} made available at Comprehensive R Archive Network (CRAN) repository \url{https://cran.r-project.org/web/packages/JAGUAR/index.html} was compared with our new method. As seen in figure 4, the loss of statistical power is not substantial. 
 \begin{center}
 \begin{figure}[!ht]
 \includegraphics[width=\textwidth]{JT_JAG_TBT.pdf}
@@ -852,11 +857,12 @@ where $\hat{\Sigma} = \hat{\tau}AA^T + \hat{\gamma}BB^T + \hat{\theta}DD^T  + \h
 
 As a comparison, we have also conducted a likelihood ratio test (RLRT) analysis \cite{rlrsim}, which has the same asymptotic distribution as that of a score test. 
 
+\begin{center}
 \begin{longtable}{lclclclclclc|c|}
 \hline
-$\beta$ & $\phi$  & $PVE_\delta (\%)$  & $PVE_\gamma (\%)$  &  $\ddot{U}_\delta$ & RLRT & $U_\psi$  \\ \hline
+Additive Genetic Effect & $G\times M$& $G \times M \times T$ & $G \times T$ &  $\ddot{U}_\delta$ & RLRT & $U_\psi$  \\ \hline
 \endfirsthead
-$\beta$ & $\phi$ & $PVE_\delta (\%)$  & $PVE_\gamma (\%)$  &  $\ddot{U}_\delta$ & RLRT & $U_\psi$  \\ \hline
+Additive Genetic Effect & $G\times M$& $G \times M \times T$ & $G \times T$ &  $\ddot{U}_\delta$ & RLRT & $U_\psi$  \\ \hline
 \endhead
 \multicolumn{7}{c}{{Continued\ldots}} \
 \endfoot
@@ -901,6 +907,7 @@ YES & YES & 0 & 8 & 0.542 & 0.529 & 0.875 \\
 \hline\hline
 \caption{Table comparing the statistical power of the joint score test statistic, $U_\psi$, RLRT and $\ddot{U}_{\delta}$. This data were generated from 1,000 simulations run on 100 individuals and five tissues with genotypes generated at a common variant allele frequency (MAF = 0.3). }
 \end{longtable}
+\end{center}
 
 \section{Analysis of Gibbs \emph{et al} adult normal human brain data}
 
@@ -978,9 +985,24 @@ gluon/.style={decorate, thick, decoration={aspect=0, segment length=0.5cm}},cpg/
 
 Each mRNA-CpG pair will be tested for a strong association with every \emph{cis}-SNP thus identifying significantly associated \underline{mRNA-CpG-SNP triplets}. 
 
+\subsection{Gene-Disease database for neurodegenerative and neuropsychiatric diseases}
+
+We developed a database of 23 neurological disorders that encompass the developmental and psychiatric disorders. These 23 disease-gene sets are defined by 6,390 overlapping genes that were gathered from the curated databases at the National Center for Biotechnology Information (NCBI). We followed instructions at \url{http://www.ncbi.nlm.nih.gov/guide/howto/find-gen-phen/}, which describes how to find genes associated with a given disease phenotype. There are a total of 16 neurodegenerative diseases and 7 neuropsychiatric diseases in this database. More can be easily added to this list.
+
+\begin{figure}[!ht]
+\hfill
+\subfigure[Correlation heatmap ]{\includegraphics[width=8.5cm]{brain_disease_cor_plots.pdf}}
+\hfill
+\subfigure[Network map]{\includegraphics[width=8cm]{brain_disease_network.pdf}}
+\hfill
+\caption[Neurodevelopmental gene-disease database]{There are a total of 6,390 overlapping genes and 23 gene-disease gene sets describing some of the neurodegenerative and neuropsychiatric disorders.}
+\end{figure}
+
+This database can be investigated in the same way as any gene ontology gene-set using either Fisher test or a hypergeometric test. 
+
 \subsection{Data Preprocessing}
 \subsubsection{Gene Expression data}
-Gene expression on four brain regions are publicly available (Gene Expression Omnibus (GEO) Accession Number: GSE15745) as rank-invariant \cite{rankInvariant} normalized gene expression data. All the negative values in the gene expression dataset are changed to a 1 and the entire dataset was then log2 transformed. Variance due to tissue source, tissue bank and the hybridization batch were visualized using principal component analysis (PCA). Before generating the PCA plots, samples with African and Asian ancestry were removed from the analysis. All the gene expression probes on sex chromosomes X and Y were removed from the analysis. As evident from the PCA plot, there are four distinct clusters of samples based on tissue source. Tissue bank and hybridization batch do not influence the cluster formation. In order to identify outliers in the PCA analysis, a simple yet standard approach or rule has been adopted. All the samples that did not follow the \emph{'IQR rule'} ($median + 1.5 * IQR$) were excluded from further analysis (one CRBLM, one FCTX and two PONS). These samples were also eliminated by Gibbs \emph{et al} in their original analysis. 
+Gene expression on four brain regions are publicly available (Gene Expression Omnibus (GEO) Accession Number: GSE15745) as rank-invariant \cite{rankInvariant} normalized gene expression data. All the negative values in the gene expression dataset are changed to a 1 and the entire dataset was then log2 transformed. Variance due to tissue source, tissue bank and the hybridization batch were visualized using principal component analysis (PCA). Before generating the PCA plots, samples with African and Asian ancestry were removed from the analysis. All the gene expression probes on sex chromosomes X and Y were removed from the analysis. As evident from the PCA plot, there are four distinct clusters of samples based on tissue source. Tissue bank and hybridization batch do not influence the cluster formation. In order to identify outliers in the PCA analysis, a simple yet standard approach or rule has been adopted. All the samples that did not follow the \emph{'IQR rule'} ($median + 1.5 * IQR$) were excluded from further analysis (one CRBLM, one FCTX and two PONS). These samples were also eliminated by Gibbs \emph{et al} in their original analysis. More information on data preprocessing and results from it are found in the supplementary section. 
 
 Each gene expression probe was then adjusted for the biological and methodological covariates such as tissue bank, gender, hybridization batch and numeric covariates such as post-mortem interval (PMI) and age in order to remove any associated confounding effects using the following linear model --
 
@@ -1006,7 +1028,7 @@ Methylation data, obtained as a ``series matrix file" from GEO consisted of Beta
 \begin{equation*}
 Beta_i = \frac{ max(y_{i,methyl},0) }{max(y_{i,methyl},0) + max(y_{i,unmethyl},0) + const}
 \end{equation*}
-where $y_{i,methyl}$ and $y_{i,unmethyl}$ are the intensities measured by the $i^{th}$ methylation and unmethylated probes, respectively. Beta values range between 0 and 1. An initial assessment of the methylation data included PCA verification of the presence of any potential confounding variables. The first two principal components plotted as a scattered plot show no visible variation between the frontal and temporal cortices as was observed by the authors \cite{gibbs}. The methylation data was later adjusted for the biological and methodological covariates such as tissue bank, gender, hybridization batch and numeric covariates such as post-mortem interval (PMI) and age in order to remove any associated confounding effects using the following linear model --
+where $y_{i,methyl}$ and $y_{i,unmethyl}$ are the intensities measured by the $i^{th}$ methylation and unmethylated probes, respectively. Beta values range between 0 and 1. Samples with African and Asian ancestry were removed from the analysis. The methylation data was later adjusted for the biological and methodological covariates such as tissue bank, gender, hybridization batch and numeric covariates such as post-mortem interval (PMI) and age in order to remove any associated confounding effects using the following linear model --
 
 \begin{equation*}
 Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \ldots + \beta_n X_n + \epsilon
@@ -1021,27 +1043,19 @@ where Y is the methylation expression data and $X_1 \ldots X_n$ represent the af
 \end{center}
 
 \subsection{Results}
-The following different types of analyses were performed --
 
-\begin{itemize}
-\item A region-by-region eQTL and mQTL analyses 
-\item A region-by-region analysis using a linear model
-\item Joint analysis using JAGUAR
-\item Joint analysis using our current model
-\end{itemize}
+\subsubsection{Joint score test approach efficiently exploits methylation data to identify more genes with eQTL compared to the current approach}
 
-\subsubsection{Region-by-Region analysis: Separate eQTL and mQTL analysis}
-
-Currently, this is the most commonly used approach in associating CpG sites, SNPs and genes. Gibbs \emph{et al} have first selected every pairing of CpG methylation sites and mRNA transcripts or genes (CpG site is less than 1 Mb from the transcription start site of a gene) and both the CpG site or the mRNA transcript had a significant \emph{cis}-eQTL. mRNA-CpG-SNP triplets were then identified based on the significant correlations between the \emph{cis}-SNP and either mRNA transcript or the CpG methylation site. We have employed the same strategy. 
+Currently, the most commonly used approach in associating CpG sites, SNPs and genes is to run two separate region-by-region analyses (one to identify potential eQTLs and another for mQTLs) followed by identification of mRNA-CpG-SNP triplets in an ad-hoc approach. Gibbs \emph{et al} have first selected every pairing of CpG methylation sites and mRNA transcripts or genes (CpG site is less than 1 Mb from the transcription start site of a gene) and both the CpG site or the mRNA transcript had a significant \emph{cis}-eQTL. mRNA-CpG-SNP triplets were then identified based on the significant correlations between the \emph{cis}-SNP and either mRNA transcript or the CpG methylation site.
 
 A region-by-region eQTL and mQTL analysis was performed using the following additive model --
-
+	
 \begin{equation*}
 Y = \beta_0 + \beta_1 G + \epsilon
 \end{equation*}
 where $Y$ is either gene expression or CpG methylation expression data and $G$ represents genotypes encoded as allele dosage. In order to correct for the number of traits being tested, the $p$~values obtained from the above model were adjusted for multiple hypothesis using an optimized FDR approach \cite{qvalue}. $Q$~values were estimated from each set of $p$~values (originated from each region-by-region analysis) and minimum $q$~value for a given mRNA-SNP or CpG-SNP pair across all the brain regions was computed, which indicates the presence of a statistically significant pair in at least one brain region. The number of significant associations in at least one brain region were then assessed at 5\% FDR ($p$~value $\leq \frac{0.05}{4}$ where 4 is the number of brain regions). 
 
-Using the above process, we identified a total of 11,014 mRNA-\emph{cis}SNP pairs and a total of 3,467 CpG-\emph{cis}SNP pairs significant in at least one region of the brain. Table below indicates the number of mRNA-SNP and CpG-SNP pairs in each brain region. For each mRNA transcript, we selected a CpG site that is at least 1 Mb from the transcription start site (TSS) and both the CpG site and the mRNA transcript had a statistically significant \emph{cis-}eQTL. These mRNA-CpG pairs were expanded to mRNA-CpG-SNP triplets where the SNP was significantly correlated with either the CpG methylation site or the mRNA transcript of the mRNA-CpG pair. We identified a total of 1,928 mRNA-CpG-SNP triplets in at least one brain region. 
+Using the above process, we identified a total of 11,014 mRNA-\emph{cis}SNP pairs (corresponding to 2,361 genes) and a total of 3,467 CpG-\emph{cis}SNP pairs (corresponding to 845 genes) significant in at least one region of the brain. Table below indicates the number of mRNA-SNP and CpG-SNP pairs in each brain region. For each mRNA transcript, we selected a CpG site that is at least 1 Mb from the transcription start site (TSS) and both the CpG site or mRNA transcript had a statistically significant \emph{cis-}eQTL. These mRNA-CpG pairs were expanded to mRNA-CpG-SNP triplets where the SNP was significantly correlated with either the CpG methylation site or the mRNA transcript of the mRNA-CpG pair. We identified a total of 2,738 mRNA - CpG - SNP triplets in at least one brain region. It is important to note that in this dataset, the region-specificity was not prominent in the methylation data, as observed by the PCA plots.
 
 \begin{table}[!ht]
 \begin{center}
@@ -1056,127 +1070,64 @@ CpG - \emph{cis}SNP pairs & 865 & 2,661 & 1,998 & 3,670 & 336 \\
 \caption{A region-by-region \emph{cis} analysis of Gibbs \emph{et al} data at a nominal $p$~value of 0.05}
 \end{table}
 
-This ad-hoc way of identifying triplets (given the discrepancy in the number of statistically significant CpG-SNP and mRNA-SNP pairs) could be inefficient 
+The aforementioned triplets identified by region-by-region approach represented a total of 314 genes and implicates a total of 440 unique CpG sites. 
 
-%\begin{table}[!ht]
-%\begin{center}
-%\resizebox{\linewidth}{!}{
-%\begin{tabular}{| c | c | c | c | c | c | c | c | c | c |}
-%\hline
-%Triplets & Gene & Chromosome & CRBLM & FCTX & PONS & TCTX & SNP Location & CpG Start Location & CpG End Location \\ \hline \hline
+\begin{center}
+\begin{figure}[!h]
+\includegraphics[width=\textwidth]{separateTBT_plots.pdf}
+\caption{Left panel shows all the CpG sites within triplets as identified by region-by-region approach with x-axis representing the distance of the CpG site to a transcription start site (TSS) of the nearest gene. Right panel plots all the -log10 pvalues (scores) obtained from a region-by-region analyses (both eQTL and mQTL) along with their corresponding scores obtained from our joint model.}
+\end{figure}
+\end{center}
 
-%\hline\hline
-%\end{tabular}
-%}
-%\end{center}
-%\caption{A list of meQTL as identified by the TBT method. TRUE indicates statistical significance ($q$~value $\leq$ 0.05) whereas FALSE indicates otherwise. Each triplet consists of a mRNA-CpG-SNP combination.}
-%\end{table}
-%
-%We found 12 SNPs located in the CpG island, called meQTL (Table 5).  These meQTL change the methylation status of the CpG site and thus regulate gene expression. 
-
-%\begin{center}
-%\begin{figure}[H]
-%\includegraphics[width=\textwidth]{triplets.pdf}
-%\caption{Heatmap of 1,911 unique mRNA-CpG-SNP triplets in each of the four brain regions. Red indicates statistical significance ($q$~value $\leq$ 0.05) and White indicates the lack thereof. Color bar on the left indicates chromosomes with each color representing each chromosome. Chromosomes are ordered from 1 through 22.}
-%\end{figure}
-%\end{center}
-
-\subsubsection{Region-by-Region analysis: Identifying triplets using a linear model}
-
-In a region-by-region analysis, we apply the following regression model to identify mRNA-CpG-SNP triplets --
-
-\begin{equation*}
-Y = G \beta + M \lambda + MG \phi + \epsilon
-\end{equation*}
-where $Y$ is the gene expression data, $G$ represents genotypes encoded as allele dosage, $M$ represents CpG methylation expression data and $MG$ represents the interaction effect between a SNP and a CpG site. In order to correct for the number of traits being tested, the $p$~values obtained from the above model were adjusted for multiple hypothesis using an optimized FDR approach \cite{qvalue}. $Q$~values were estimated from each set of $p$~values (originated from each region-by-region analysis) and minimum $q$~value for a given mRNA-SNP or CpG-SNP pair across all the brain regions was computed, which indicates the presence of a statistically significant pair in at least one brain region. The number of significant associations in at least one brain region were then assessed at 5\% FDR ($p$~value $\leq \frac{0.05}{4}$ where 4 is the number of brain regions). 
+When our joint model was applied on Gibbs \emph{et al} data, we identified a total of 13,212 statistically significant mRNA - CpG - SNP triplets corresponding to 2,026 genes with approximately 75\% overlap with the number of triplets identified by the region-by-region analysis. By using methylation data as a baseline covariate, we could identify and leverage a higher number of unique CpG methylation sites (2,948) than a simple region-by-region approach (440). KEGG pathway analysis shows the biological relevance of this discovery. 
 
 \begin{table}[!ht]
 \begin{center}
-\begin{tabular}{| c | c | c | c | c | c |}
+\begin{tabular}{| c | c | c | c |}
 \hline
-& CRBLM & FCTX & PONS & TCTX & Common\\ \hline \hline
-mRNA - CpG - SNP triplets & 8,483 & 9,901 & 5,901 & 7,831 & 1,993\\
+Cluster & KEGG ID & Pathway Name & qvalue \\ \hline\hline
+TBT & hsa01100 & Metabolic pathways & 0.01641132 \\ \hline
+Joint Test & hsa01100 & Metabolic pathways & 0.000142812 \\
+Joint Test & hsa03010 & Ribosome & 0.000142812 \\
+Joint Test & hsa00240 & Pyrimidine metabolism & 0.000142812 \\
+Joint Test & hsa00230 & Purine metabolism & 0.000487697 \\
+Joint Test & hsa00071 & Fatty acid degradation & 0.003901329 \\
 \hline\hline
 \end{tabular}
 \end{center}
-\caption{Triplets identified using a region-by-region \emph{cis} analysis of Gibbs \emph{et al} data at a nominal $p$~value of 0.05}
+\caption{Enriched KEGG pathways in TBT and our Joint Test model}
 \end{table}
 
-We found 10,926 mRNA-CpG-SNP triplets to be statistically significant in at least one brain region. Out of these, a total of 1,993 triplet associations were found in all four brain regions.
+\begin{center}
+\begin{figure}[H]
+\includegraphics[width=0.75\textwidth]{TBT_JT_KEGG.pdf}
+\caption{Dotplot showing statistically significant ($q$~value $\leq$ 0.05) enriched KEGG pathways based on genes identified using a region-by-region approach and our Joint Model.}
+\end{figure}
+\end{center}
 
-%\begin{table}[!ht]
-%\begin{center}
-%\resizebox{\linewidth}{!}{
-%\begin{tabular}{| c | c | c | c | c | c | c | c | c | c |}
-%\hline
-%Triplets & Gene & CRBLM & FCTX & PONS & TCTX & Chromosome & SNP Location & CpG Start Location & CpG End Location  \\ \hline \hline
+Our method identifies more SNPs within CpG islands and \emph{inter-genic} (SNPs embedded within the mRNA sequence) SNPs compared to a TBT analysis. 
 
-%\hline\hline
-%\end{tabular}
-%}
-%\end{center}
-%\caption{meQTL identified using a region-by-region \emph{cis} analysis of Gibbs \emph{et al} data. TRUE indicates statistical significance ($q$~value $\leq$ 0.05) whereas FALSE indicates otherwise. Each triplet consists of a mRNA-CpG-SNP combination.}
-%\end{table}
+\begin{table}[H]
+\begin{center}
+\begin{tabular}{| c | c | c |}
+\hline
+& SNPs within CpG islands & SNPs within Genes\\ \hline \hline
+Total investigated & 1,571 & 810 \\ \hline
+Region-by-region approach & 18 & 9 \\ \hline
+Joint model & 96 & 23 \\
+\hline\hline
+\end{tabular}
+\end{center}
+\caption{Tabular description of inter-CpG island SNPs and inter-genic SNPs.}
+\end{table}
 
-\subsubsection{Joint analysis using JAGUAR}
-
-JAGUAR \cite{jaguar,jaguar_cran} applies the following linear model --
-
-\begin{equation*}
-Y = J\alpha + G\beta + Au + Bv  + \xi \qquad \xi \sim N\left(0, \epsilon \right)
-\end{equation*}
-
-where $Y$ is the gene expression data, $G$ represents genotypes encoded as allele dosage. If $T$ indicates tissue, the $G \times T$ effect is measured by the random effect $v \sim N\left(0,\gamma \right)$. In order to correct for the number of traits being tested, the $p$~values obtained from the above model were adjusted for multiple hypothesis using an optimized FDR approach \cite{qvalue}.  $Q$~values were estimated from each set of $p$~values (originated from each region-by-region analysis) and minimum $q$~value for a given mRNA-SNP or CpG-SNP pair across all the brain regions was computed, which indicates the presence of a statistically significant pair in at least one brain region. The number of significant associations in at least one brain region were then assessed at 5\% FDR ($p$~value $\leq \frac{0.05}{4}$ where 4 is the number of brain regions). 
-
-JAGUAR was applied to separately identify mRNA-SNP pairs and CpG-SNP pairs following which, these mRNA-CpG pairs were expanded to mRNA-CpG-SNP triplets where the SNP was significantly correlated with either the CpG methylation site or the mRNA transcript of the mRNA-CpG pair. JAGUAR is a score-test based approach that jointly models all the tissues and makes use of all the information available to maximize the power of eQTL mapping. We identified 16,919 mRNA-SNP pairs (96\% overlap with a region-by-region approach) and 4,804 CpG-SNP pairs (91\% overlap with a region-by-region approach) significant in at least one region of the brain. For each mRNA transcript, we selected a CpG site that is at least 1 Mb from the transcription start site (TSS) and both the CpG site and the mRNA transcript had a statistically significant \emph{cis-}eQTL. These mRNA-CpG pairs were expanded to mRNA-CpG-SNP triplets where the SNP was significantly correlated with either the CpG methylation site or the mRNA transcript of the mRNA-CpG pair. We identified a total of 1,095 mRNA-CpG-SNP triplets in at least one brain region. 
-
-\subsubsection{Joint analysis using our current model}
-
-We applied our joint model --
-
-\begin{equation*}
-Y = J\alpha + G\beta + M\lambda + MG\phi + Au + Bv + Cw + Dx + \xi	\qquad \xi \sim N\left(0, \epsilon \right)
-\end{equation*}
-
-where $Y$ is the gene expression data, $G$ represents genotypes encoded as allele dosage, $M$ represents CpG methylation expression data and $MG$ represents the interaction effect between a SNP and a CpG site. If $T$ indicates tissue, the $G \times T$ effect is measured by the random effect $v \sim N\left(0,\gamma \right)$, the $G \times T \times M$ effect is measured by $w \sim N\left(0,\delta\right)$. In order to correct for the number of traits being tested, the $p$~values obtained from the above model were adjusted for multiple hypothesis using an optimized FDR approach \cite{qvalue}.  $Q$~values were estimated from each set of $p$~values and we computed the minimum $q$~value for mRNA-CpG-SNP triplets. The number of significant associations were then assessed at 5\% FDR ($p$~value $\leq 0.05$). 
-
-%\begin{landscape}
-%\small
-%%\begin{longtable}{ l l l l l l }
-%\setlength\LTleft{0pt}            % default: \parindent
-%\setlength\LTright{0pt}           % default: \fill
-%\begin{longtable}{@{\extracolsep{\fill}}|*{6}{c |}}
-%\hline
-%Triplets & Gene & Chromosome & SNP Location & CpG Start Location & CpG End Location  \\ \hline \hline
-%\endfirsthead
-%Triplets & Gene & Chromosome & SNP Location & CpG Start Location & CpG End Location  \\ \hline \hline
-%\endhead
-%\multicolumn{6}{r}{{Continued\ldots}} \
-%\endfoot
-%\hline
-%\endlastfoot
-
-%\hline \hline
-%\caption{A list of 62 meQTL as identified by our joint score test approach. Triplets of mRNA-CpG-SNP in bold were identified by a region-by-region analysis. A total of 18 (out of 19) triplets were picked up by our method. }
-%\end{longtable}
-%\end{landscape}
-
-When applied our joint model on Gibbs \emph{et al} data, we identified 13,212 statistically significant mRNA - CpG - SNP triplets with approximately 75\% overlap with the number of triplets identified by the region-by-region analysis. 
-
-%\begin{figure}[!ht]
-%\hfill
-%\subfigure[8,555 statistically significant triplets ]{\includegraphics[width=8.5cm]{JT_stat_plot.pdf}}
-%\hfill
-%\subfigure[62 meQTL]{\includegraphics[width=8cm]{meQTL_plot.pdf}}
-%\hfill
-%\caption[Plotting triplets identified by our joint analysis]{Triplets with expanded statistics. All the values are -log10 unadjusted $p$~values of individual statistics that comprise our joint score test statistic. }
-%\end{figure}
+A region-by-region approach identifies 18 SNPs located within CpG islands that are significantly associated with gene expression. 11 (~61\%) of these SNPs out of 18 were picked up by our method. An advantage to using our approach is the knowledge of individual contributions of each different effect (see table below), which gives us a hint on the extent to which tissue-specific effect is driving the mRNA - CpG - SNP association. 
 
 \begin{table}[H]
 \begin{center}
 \begin{tabular}{| c | c | c | c | c |}
 \hline
-$p~value \leq 0.05$ & $U_\beta$ & $U_\phi$ & $U_\gamma$ & $U_\delta$ \\ \hline \hline
+$q~value \leq 0.05$ & Additive Genotypic Effect & Additive Methylation Effect & $G \times T$ Effect & $G \times M \times T$ Effect \\ \hline \hline
 TRUE & 11,994 (90.8\%) &  1,140 (8.6\%) & 11,036 (83.5\%) & 1,985 (15\%) \\ \hline
 FALSE & 1,218 (9.2\%) & 12,072 (91.4\%) & 2,176 (16.5\%) & 11,227 (85\%) \\ \hline
 \hline\hline
@@ -1185,22 +1136,125 @@ FALSE & 1,218 (9.2\%) & 12,072 (91.4\%) & 2,176 (16.5\%) & 11,227 (85\%) \\ \hli
 \caption{The distribution of the different types of effects as measured by our joint score test statistic. $U_\beta$ is a measure of the main additive genetic effect. $U_\phi$ is a measure of $G \times M$ effect. $U_\gamma$ measures $G \times T$ effect while $U_\delta$ is a measure of $G \times M \times T$.}
 \end{table}
 
-Our joint score test method identifies mRNA-CpG-SNP associations 	that weren't picked up by either a region-by-region method or by JAGUAR. For example, DiGeorge Syndrome Critical Region Gene 8 (DGCR8; ILMN1694223) was identified to be significantly associated with CpG site cg18251360 and SNP rs10212087 using our joint method. DGCR8, found on chromosome 22, was previously implicated in schizophrenia \cite{dgcr}. This association was not picked up by any of the other methods. 
+In order to understand the clinical significance of these findings, we performed gene - phenotype/disease associations. We developed a customized database consisting of clinically significant neurodegenerative and neuropsychiatric diseases by querying NCBI's Gene database. This database contains 6,960 overlapping genes from 23 disease phenotypes. All the genes identified by the region-by-region approach and our joint approach are mapped to this database and an enrichment analysis was performed. From the table below, it is clear that the genes associated with 
 
+\begin{table}[!ht]
 \begin{center}
-\begin{figure}[H]
-\includegraphics[width=\textwidth]{jt_plots.pdf}
-\caption{Scatter plot of -log10 $p$~values from our joint score test and both a region-by-region analysis and $G \times M \times T$ variance component score test, $\ddot{U_\delta}$}
-\end{figure}
+\begin{tabular}{| c | x{3cm} | c | c | c |}
+\hline
+DiseaseSetID & Description & DiseaseSetSize & Joint Test & TBT \\ \hline \hline
+Brain:3 & Alzheimer's & 495 & \textbf{0.015780049} & 0.059985882 \\
+Brain:19 & Schizophrenia & 1599 & \textbf{0.016041433} & 0.189243279 \\
+Brain:6 & Bipolar disorder & 754 & \textbf{0.021575039} & 0.719500885 \\
+Brain:8 & Depression & 410 & 0.144615763 & 0.719500885 \\
+Brain:13 & Multiple Sclerosis & 685 & 0.200715383 & \textbf{0.024224498} \\
+Brain:2 & ALS & 219 & 0.325759394 & 0.093596724 \\
+Brain:5 & Autism spectrum disorder & 425 & 0.325759394 & 0.736526565 \\
+Brain:15 & Parkinson's disease & 270 & 0.325759394 & 0.302159761 \\
+Brain:23 & Wilson's disease & 14 & 0.325759394 & NA \\
+Brain:10 & Epilepsy & 530 & 0.533067167 & 0.302159761 \\
+Brain:4 & Ataxia telangiectasia & 82 & 0.563532884 & 0.455693526 \\
+Brain:11 & Huntington's disease & 71 & 0.563532884 & NA \\
+Brain:17 & Prader-Willi syndrome & 68 & 0.669070678 & 0.719500885 \\
+Brain:14 & Neurofibromatosis & 66 & 0.791002618 & 0.381194067 \\
+Brain:18 & Prion & 90 & 0.791002618 & 0.732006065 \\
+Brain:7 & Chiari malformation & 12 & 0.806687077 & NA \\
+Brain:9 & Encephalitis & 109 & 0.806687077 & 0.736526565 \\
+Brain:1 & DiGeorge's syndrome & 148 & 0.869558643 & NA \\
+Brain:12 & Mental retardation & 556 & 0.869558643 & 0.826439176 \\
+Brain:16 & Pontocerebellar & 16 & 0.869558643 & NA \\
+Brain:20 & Spinal muscular atrophy & 73 & 0.869558643 & NA \\
+Brain:21 & Spinocerebellar ataxia & 119 & 0.869558643 & NA \\
+Brain:22 & Williams-Beuren disease & 149 & 0.869558643 & NA \\
+\hline\hline
+\end{tabular}
 \end{center}
+\caption{Gene-Disease associations computed for gene lists obtained from both region-by-region and our joint model analyses. Adjusted $p$~values, called $q$~values, computed from a hypergeometric distribution are reported here.}
+\end{table}
 
-\section{Conclusions}
+\subsubsection{Assessing the significance of region-specific brain methylation data in eQTL identification}
 
-Our method investigates the presence of a number of genetic and epigenetic effects: 1) an overall shift in gene expression due to genotypes, 2) an overall shift in gene expression due to interaction between genotypes and CpG site methylation, 3) tissue-specific effects of genotypes,  and 4) tissue-specific effects of combined methylation and genotypes on gene expression. Our approach models tissue-specific effects and tissue-specific interaction between genotype and methylation as random effects, resulting in an efficient test for identifying statistically significant association between a given mRNA-CpG-SNP triplet. Currently, there are no methods that jointly model the epigenetic and genetic effects of tissue-specific gene expression. 
+In order to assess the role of region-specific epigenetic variation on eQTL identification, we compared our method with JAGUAR. Briefly, JAGUAR jointly models the overall shift in the gene expression due to genotype together with tissue-specific interaction with genotype in order to efficiently eQTL. However, in the presence of methylation data, JAGUAR may not be as efficient as our new method to identify mRNA - CpG - SNP triplets. 
 
-An expression quantitative trait loci (eQTL) study focuses on identifying genetic variants that are correlated with gene expression in one or more genes. However, in the presence of epigenetic elements such as CpG island methylation that negatively affects gene expression, many eQTL studies fail to 
+%\subsubsection{Region-by-Region analysis: eQTL analysis using methylation as a baseline covariate}
+%
+%In a region-by-region analysis, we apply the following regression model to identify mRNA-CpG-SNP triplets by using methylation as a baseline covariate--
+%
+%\begin{equation*}
+%Y = G \beta + M \lambda + MG \phi + \epsilon
+%\end{equation*}
+%where $Y$ is the gene expression data, $G$ represents genotypes encoded as allele dosage, $M$ represents CpG methylation expression data and $MG$ represents the interaction effect between a SNP and a CpG site. In order to correct for the number of traits being tested, the $p$~values obtained from the above model were adjusted for multiple hypothesis using an optimized FDR approach \cite{qvalue}. $Q$~values were estimated from each set of $p$~values (originated from each region-by-region analysis) and minimum $q$~value for a given mRNA-SNP or CpG-SNP pair across all the brain regions was computed, which indicates the presence of a statistically significant pair in at least one brain region. The number of significant associations in at least one brain region were then assessed at 5\% FDR ($p$~value $\leq \frac{0.05}{4}$ where 4 is the number of brain regions). 
+%
+%\begin{table}[!ht]
+%\begin{center}
+%\begin{tabular}{| c | c | c | c | c | c |}
+%\hline
+%& CRBLM & FCTX & PONS & TCTX & Common\\ \hline \hline
+%mRNA - CpG - SNP triplets & 8,483 & 9,901 & 5,901 & 7,831 & 1,993\\
+%\hline\hline
+%\end{tabular}
+%\end{center}
+%\caption{Triplets identified using a region-by-region \emph{cis} analysis of Gibbs \emph{et al} data at a nominal $p$~value of 0.05}
+%\end{table}
+%
+%We found 10,926 mRNA-CpG-SNP triplets to be statistically significant in at least one brain region. Out of these, a total of 1,993 triplet associations were found in all four brain regions.
+%
+%%\begin{table}[!ht]
+%%\begin{center}
+%%\resizebox{\linewidth}{!}{
+%%\begin{tabular}{| c | c | c | c | c | c | c | c | c | c |}
+%%\hline
+%%Triplets & Gene & CRBLM & FCTX & PONS & TCTX & Chromosome & SNP Location & CpG Start Location & CpG End Location  \\ \hline \hline
+%
+%%\hline\hline
+%%\end{tabular}
+%%}
+%%\end{center}
+%%\caption{meQTL identified using a region-by-region \emph{cis} analysis of Gibbs \emph{et al} data. TRUE indicates statistical significance ($q$~value $\leq$ 0.05) whereas FALSE indicates otherwise. Each triplet consists of a mRNA-CpG-SNP combination.}
+%%\end{table}
+%
+%\subsubsection{Joint analysis using JAGUAR to perform separate eQTL and mQTL analyses (an alternative to TBT analysis)}
+%
+%JAGUAR \cite{jaguar,jaguar_cran} applies the following linear model --
+%
+%\begin{equation*}
+%Y = J\alpha + G\beta + Au + Bv  + \xi \qquad \xi \sim N\left(0, \epsilon \right)
+%\end{equation*}
+%
+%where $Y$ is the gene expression data, $G$ represents genotypes encoded as allele dosage. If $T$ indicates tissue, the $G \times T$ effect is measured by the random effect $v \sim N\left(0,\gamma \right)$. In order to correct for the number of traits being tested, the $p$~values obtained from the above model were adjusted for multiple hypothesis using an optimized FDR approach \cite{qvalue}.  $Q$~values were estimated from each set of $p$~values (originated from each region-by-region analysis) and minimum $q$~value for a given mRNA-SNP or CpG-SNP pair across all the brain regions was computed, which indicates the presence of a statistically significant pair in at least one brain region. The number of significant associations in at least one brain region were then assessed at 5\% FDR ($p$~value $\leq \frac{0.05}{4}$ where 4 is the number of brain regions). 
+%
+JAGUAR was applied to Gibbs \emph{et al} data to identify mRNA-SNP pairs and CpG-SNP pairs following which, these mRNA-CpG pairs were expanded to mRNA-CpG-SNP triplets where the SNP was significantly correlated with either the CpG methylation site or the mRNA transcript of the mRNA-CpG pair. This approach is similar to the region-by-region approach that w We identified 16,919 mRNA-SNP pairs (96\% overlap with a region-by-region approach) and 4,804 CpG-SNP pairs (91\% overlap with a region-by-region approach) significant in at least one region of the brain. For each mRNA transcript, we selected a CpG site that is at least 1 Mb from the transcription start site (TSS) and both the CpG site and the mRNA transcript had a statistically significant \emph{cis-}eQTL. These mRNA-CpG pairs were expanded to mRNA-CpG-SNP triplets where the SNP was significantly correlated with either the CpG methylation site or the mRNA transcript of the mRNA-CpG pair. We identified a total of 4,458 mRNA-CpG-SNP triplets in at least one brain region. There is an 86\% overlap with the number of triplets identified by the region-by-region analysis.
+
+%\subsubsection{Joint analysis using our current model}
+%
+%We applied our joint model --
+%
+%\begin{equation*}
+%Y = J\alpha + G\beta + M\lambda + MG\phi + Au + Bv + Cw + Dx + \xi	\qquad \xi \sim N\left(0, \epsilon \right)
+%\end{equation*}
+%
+%where $Y$ is the gene expression data, $G$ represents genotypes encoded as allele dosage, $M$ represents CpG methylation expression data and $MG$ represents the interaction effect between a SNP and a CpG site. If $T$ indicates tissue, the $G \times T$ effect is measured by the random effect $v \sim N\left(0,\gamma \right)$, the $G \times T \times M$ effect is measured by $w \sim N\left(0,\delta\right)$. In order to correct for the number of traits being tested, the $p$~values obtained from the above model were adjusted for multiple hypothesis using an optimized FDR approach \cite{qvalue}.  $Q$~values were estimated from each set of $p$~values and we computed the minimum $q$~value for mRNA-CpG-SNP triplets. The number of significant associations were then assessed at 5\% FDR ($p$~value $\leq 0.05$). 
+%
+%When applied our joint model on Gibbs \emph{et al} data, we identified 13,212 statistically significant mRNA - CpG - SNP triplets with approximately 75\% overlap with the number of triplets identified by the region-by-region analysis. 
+
+%Our joint score test method identifies mRNA-CpG-SNP associations that weren't picked up by either a region-by-region method or by JAGUAR. For example, DiGeorge Syndrome Critical Region Gene 8 (DGCR8; ILMN1694223) was identified to be significantly associated with CpG site cg18251360 and SNP rs10212087 using our joint method. DGCR8, found on chromosome 22, was previously implicated in schizophrenia \cite{dgcr}. This association was not picked up by any of the other methods. 
+%
+%%\begin{center}
+%%\begin{figure}[H]
+%%\includegraphics[width=\textwidth]{jt_plots.pdf}
+%%\caption{Scatter plot of -log10 $p$~values from our joint score test and both a region-by-region analysis and $G \times M \times T$ variance component score test, $\ddot{U_\delta}$}
+%%\end{figure}
+%%\end{center}
+
+\section{Discussion}
+
+Our method investigates the presence of a number of genetic and epigenetic effects: 1) an overall shift in gene expression due to genotypes, 2) an overall shift in gene expression due to interaction between genotypes and CpG site methylation, 3) tissue-specific effects of genotypes,  and 4) tissue-specific effects of combined methylation and genotypes on gene expression. Our approach models tissue-specific effects and tissue-specific interaction between genotype and methylation as random effects, resulting in an efficient test for identifying statistically significant association between a given mRNA-CpG-SNP triplet. Overall, our efforts are primarily directed to understand whether a SNP affects gene expression independent of CpG methylation, or whether a SNP affects the DNA methylation at a CpG site, which in turn affects gene expression across multiple tissues. Currently, there are no methods that jointly model the epigenetic and genetic control of tissue-specific gene expression. 
+
+An expression quantitative trait loci (eQTL) study focuses on identifying genetic variants that are correlated with gene expression in one or more genes. However, many eQTL studies fail to account for the masking effect of a genetic variant on DNA methylation, which may regulate gene expression across multiple tissues. Our method provides an efficient framework to integrate SNPs, DNA methylation and gene expression, and investigate how the different forms of variation inter-relate.
 
 The dataset examined here used genome-wide association study (GWAS) SNP array platform to interrogate germ-line variation that include an overwhelming number of common variants. 
+
+\textbf{MORE TO FOLLOW...}
 
 \section{Mathematical derivations}
 
